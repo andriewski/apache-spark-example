@@ -7,12 +7,13 @@ plugins {
 
 group = 'by.mark'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+//    TODO fix logback
+    compile.exclude(group: 'ch.qos.logback')
 }
 
 compileJava {
@@ -28,7 +29,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     compile "org.apache.spark:spark-core_2.12:$sparkVersion"
-    compile "org.apache.spark:spark-sql_2.12:$sparkVersion"
+//    compile "org.apache.spark:spark-sql_2.12:$sparkVersion" //hasn't used yet
+
+    compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
+    compile "org.apache.hadoop:hadoop-aws:$hadoopVersion"
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

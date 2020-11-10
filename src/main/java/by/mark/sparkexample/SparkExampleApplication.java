@@ -9,5 +9,4 @@ public class SparkExampleApplication {
     public static void main(String[] args) {
         SpringApplication.run(SparkExampleApplication.class, args);
     }
-
 }
