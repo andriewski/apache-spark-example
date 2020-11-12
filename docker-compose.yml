@@ -1,0 +1,92 @@
+version: '3'
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.4.1
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:5.4.1
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka:29092
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'false'
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.4.1
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
+
+  click-house:
+    image: yandex/clickhouse-server
+    container_name: click
+    depends_on:
+      - zookeeper
+      - kafka
+      - schema-registry
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+#### Create topic
+# docker exec -it kafka kafka-topics --zookeeper zookeeper:2181 --create --topic click-topic --partitions 1 --replication-factor 1
+
+#### Show created topic
+# docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --list
+
+#### Connect producer
+# docker exec -it kafka kafka-console-producer --broker-list localhost:9092 --topic click-topic
+
+#### Connect consumer
+#docker exec -it kafka kafka-console-consumer --bootstrap-server localhost:9092 --topic click-topic --group group12
+
+#### Delete topic
+# docker exec -it kafka kafka-topics --bootstrap-server localhost:9092 --delete --topic click-topic --force
+
+
+#  kafka-topics \
+#  --bootstrap-server kafka:9092 \
+#  --topic readings \
+#  --create --partitions 6 \
+#  --replication-factor 2
+
+#  kafka-console-producer --broker-list kafka:9092 --topic readings <<END
+#  1,"2020-05-16 23:55:44",14.2
+#  2,"2020-05-16 23:55:45",20.1
+#  3,"2020-05-16 23:55:51",12.9
+#  END
+
+# https://altinity.com/blog/2020/5/21/clickhouse-kafka-engine-tutorial

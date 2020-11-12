@@ -1,0 +1,70 @@
+---
+- name: Install hadoop on all aws instances
+  hosts: aws_hadoop_servers
+  become: yes
+  any_errors_fatal: true # прекращает выполнение на всех серверах, если хотя бы на одном из них произошла ошибка
+  vars:
+    source_file: ./hadoop-conf/core-site.xml
+    destin_file: /home/ec2-user/server/hadoop-2.7.3/etc/hadoop/core-site.xml
+  environment:
+    JAVA_HOME: /usr/lib/jvm/java-1.8.0-amazon-corretto.x86_64
+
+  tasks:
+# https://www.novixys.com/blog/setup-apache-hadoop-cluster-aws-ec2/
+
+#    - name: Install java
+#      shell: amazon-linux-extras enable corretto8 && yum clean metadata && yum install -y java-1.8.0-amazon-corretto
+#
+#    - name: Setting java eng java
+#      shell: export JAVA_HOME=
+#
+#    - name: Create folders
+#      file:
+#        path: /home/ec2-user/server
+#        state: directory
+##        mode: 0755
+#
+#    - name: Download hadoop
+#      get_url:
+#        url: https://archive.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
+#        dest: /home/ec2-user/server
+#
+#    - name: Download hadoop
+#      get_url:
+#        url: https://archive.apache.org/dist/hadoop/common/hadoop-2.7.3/hadoop-2.7.3.tar.gz
+#        dest: /home/ec2-user/server
+#
+#    - name: Unarchive hadoop
+#      unarchive:
+#        src: /home/ec2-user/server/hadoop-2.7.3.tar.gz
+#        dest: /home/ec2-user/server
+#        remote_src: yes
+
+#    - name: Copy hadoop configuration
+#      copy: src={{ source_file }} dest={{ destin_file }}
+#
+#    - name: Create datadir
+#      shell: sudo mkdir -p /usr/local/hadoop/hdfs/data && sudo chown -R ec2-user:ec2-user /usr/local/hadoop/hdfs/data
+
+
+  - block: #========= Block for Master node ==========
+
+    - name: "test 1"
+      debug:
+        msg: "hello 11111"
+
+    when: inventory_hostname == "NameNode"
+
+  - block: #========= Block for Slave nodes ==========
+
+    - name: "test 2"
+      debug:
+        msg: "hello 22222"
+
+    when: inventory_hostname != "NameNode"
+
+
+#To install it use: ansible-galaxy collection install community.crypto
+#    - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+#      community.crypto.openssh_keypair:
+#        path: /home/ec2-user/.ssh/id_rsa
